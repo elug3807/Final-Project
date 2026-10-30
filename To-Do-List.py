@@ -1,3 +1,4 @@
+import json
 import os
 os.system("")
 
@@ -5,9 +6,12 @@ STRIKE = "\033[9m"
 GREY = "\033[90m"
 RESET = "\033[0m"
 
+FILE = "stored_tasks.json"
+
 main_options = {
                 "1": "Add task", 
                 "2": "Check/uncheck task", 
+                "3": "Delete task",
                 "q": "Quit"
                 }
 
@@ -19,6 +23,17 @@ def pause():
 
 def sort_tasks(items):
     items.sort(key=lambda task: task["done"])
+
+def save_tasks(tasks):
+    with open(FILE, "w", encoding="utf-8") as f:
+        json.dump(tasks, f, ensure_ascii=False, indent=2)
+
+def load_tasks():
+    try:
+        with open(FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return[]
 
 def menu(title, prompt, options, info=""):
     clear()
@@ -74,7 +89,7 @@ def mark_done(prompt, tasks):
     show("These are your tasks:", tasks, "There are no active tasks")
     if tasks == []:
         return
-    
+        
     answer = input(prompt)
     if not answer.isdigit():
         print("You have to write a number")
@@ -91,10 +106,35 @@ def mark_done(prompt, tasks):
         sort_tasks(tasks)
     print()
 
+def delete(prompt, tasks):
+    show("These are your tasks:", tasks, "There are no tasks")
+    if tasks == []:
+        return
+    
+    answer = input(prompt)
+    if answer.lower() == "b":
+        print("Cancelled")
+        return
+    
+    if not answer.isdigit():
+        print("You have to write a number")
+        return
+
+    number = int(answer)
+    if number < 1 or number > len(tasks):
+        print("There are no tasks with that number")
+    
+    else:
+        removed = tasks.pop(number - 1)
+        print(f"Deleted: {removed['title']}")
+    
+    
+    
+
 #---------------------------------------------------------
 #--Main
 def main():
-    tasks = []
+    tasks = load_tasks()
 
     while True:
         active = 0
@@ -108,9 +148,12 @@ def main():
             add("Add task: ", tasks)
         elif choice == "2":
             mark_done("Which task do you want to check/uncheck? (number): ", tasks)
+        elif choice == "3":
+            delete("Which task do you want to delete? (number, enter 'b' to cancel): ", tasks)
         elif choice == "q":
             break
 
+        save_tasks(tasks)
         pause()
 
 main()
