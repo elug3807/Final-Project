@@ -12,6 +12,7 @@ main_options = {
                 "1": "Add task", 
                 "2": "Check/uncheck task", 
                 "3": "Delete task",
+                "4": "Search tasks",
                 "q": "Quit"
                 }
 
@@ -78,7 +79,6 @@ def add(prompt, items):
     task = input(prompt)
     if task == "":
         print("The task can not be empty")
-        pause()
     else:
         items.append({"title": task, "done": False})
         sort_tasks(items)
@@ -89,32 +89,47 @@ def mark_done(prompt, tasks):
     show("These are your tasks:", tasks, "There are no active tasks")
     if tasks == []:
         return
-        
+    
     answer = input(prompt)
+    
     if not answer.isdigit():
         print("You have to write a number")
-        pause()
         return
     
     number = int(answer)
     if number < 1 or number > len(tasks):
         print("There is no task with that number")
-        pause()
     else:
         task = tasks[number - 1]
         task["done"] = not task["done"]
         sort_tasks(tasks)
     print()
 
+def search(prompt, tasks):
+    text = input(prompt).strip().lower()
+    if text == "":
+        print("The search can not be empty")
+        return
+
+    print()
+    found = 0
+    for i in range(0, len(tasks)):
+        if text in tasks[i]["title"].lower():
+            if tasks[i]["done"]:
+                print(f" {i+1}) [x] {GREY}{STRIKE}{tasks[i]['title']}{RESET}")
+            else:
+                print(f" {i+1}) [ ] {tasks[i]['title']}")
+            found += 1
+
+    if found == 0:
+        print("No tasks contain that text")
+
 def delete_one(tasks):
     show("These are your tasks:", tasks, "There are no tasks")
     if tasks == []:
         return
 
-    answer = input("Which task do you want to delete? (number, b = back): ")
-    if answer.lower() == "b":
-        print("Cancelled")
-        return
+    answer = input("Which task do you want to delete? (number")
 
     if not answer.isdigit():
         print("You have to write a number")
@@ -145,6 +160,7 @@ def delete_completed(tasks):
         print(f"Deleted {removed} completed tasks")
     else:
         print("Cancelled")
+
 delete_options = {
                     "1": "Delete one task",
                     "2": "Delete all completed tasks",
@@ -177,10 +193,12 @@ def main():
         if choice == "1":
             add("Add task: ", tasks)
         elif choice == "2":
-            mark_done("Which task do you want to check/uncheck? (number): ", tasks)
+            mark_done("Which task do you want to check/uncheck?", tasks)
         elif choice == "3":
             delete_menu(tasks)
             continue
+        elif choice == "4":
+            search("Search for: ", tasks)
         elif choice == "q":
             break
 
