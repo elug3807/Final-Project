@@ -106,30 +106,64 @@ def mark_done(prompt, tasks):
         sort_tasks(tasks)
     print()
 
-def delete(prompt, tasks):
+def delete_one(tasks):
     show("These are your tasks:", tasks, "There are no tasks")
     if tasks == []:
         return
-    
-    answer = input(prompt)
+
+    answer = input("Which task do you want to delete? (number, b = back): ")
     if answer.lower() == "b":
         print("Cancelled")
         return
-    
+
     if not answer.isdigit():
         print("You have to write a number")
         return
 
     number = int(answer)
     if number < 1 or number > len(tasks):
-        print("There are no tasks with that number")
-    
+        print("There is no task with that number")
     else:
         removed = tasks.pop(number - 1)
         print(f"Deleted: {removed['title']}")
     
-    
-    
+
+def delete_completed(tasks):
+    kept = []
+    for task in tasks:
+        if not task["done"]:
+            kept.append(task)
+
+    removed = len(tasks) - len(kept)
+    if removed  == 0:
+        print("There are no completed tasks")
+        return
+
+    answer = input(f"Delete {removed} completed tasks? (y/n): ")
+    if answer.lower()=="y":
+        tasks[:] = kept
+        print(f"Deleted {removed} completed tasks")
+    else:
+        print("Cancelled")
+delete_options = {
+                    "1": "Delete one task",
+                    "2": "Delete all completed tasks",
+                    "b": "Back"
+                 }
+
+def delete_menu(tasks):
+    while True:
+        choice = menu("Delete tasks", "Option: ", delete_options, task_text(tasks))
+        clear()
+
+        if choice == "1":
+            delete_one(tasks)
+        elif choice == "2":
+            delete_completed(tasks)
+        elif choice == "b": 
+            return
+        save_tasks(tasks)
+        pause()
 
 #---------------------------------------------------------
 #--Main
@@ -137,10 +171,6 @@ def main():
     tasks = load_tasks()
 
     while True:
-        active = 0
-        for task in tasks:
-            if not task["done"]:
-                active += 1
         choice = menu("Truely Done", "Option: ", main_options,task_text(tasks))
         clear()
 
@@ -149,7 +179,8 @@ def main():
         elif choice == "2":
             mark_done("Which task do you want to check/uncheck? (number): ", tasks)
         elif choice == "3":
-            delete("Which task do you want to delete? (number, enter 'b' to cancel): ", tasks)
+            delete_menu(tasks)
+            continue
         elif choice == "q":
             break
 
